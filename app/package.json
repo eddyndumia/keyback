@@ -9,8 +9,8 @@
     "setup": "tsx src/setup.ts",
     "demo": "tsx src/demo.ts",
     "api": "tsx src/api/server.ts",
-    "assessor": "tsx src/assessor/worker.ts",
-    "verify": "tsx src/verify.ts",
+    "worker": "tsx src/api/worker.ts",
+    "smoke": "tsx src/smoke.ts",
     "test": "node --import tsx --test src/**/*.test.ts",
     "typecheck": "tsc --noEmit"
   },

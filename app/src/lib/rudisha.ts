@@ -77,7 +77,9 @@ export class Rudisha {
       deposit: 1n,
     });
     const after = await this.mustLease(leaseId);
-    if (after.state !== "Funded") throw new Error(`deposit was refunded: lease ${leaseId} is ${after.state}`);
+    if (after.state !== "Funded") {
+      throw new Conflict(`the deposit was not accepted and has been refunded (lease ${leaseId} is ${after.state}; only the named tenant can pay the exact deposit)`);
+    }
   }
 
   async signCheckin(who: Key, leaseId: number, report: Report): Promise<string> {
