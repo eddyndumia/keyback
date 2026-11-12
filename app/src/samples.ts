@@ -44,6 +44,15 @@ export const checkoutDamaged = (leaseId: number) =>
     return [r, i, c, n];
   }));
 
+/** A landlord's doctored move-out report: normal wear written up as damage. */
+export const checkoutDoctored = (leaseId: number) =>
+  report("checkout", leaseId, "2026-11-01", FLAT.map(([r, i, c, n]): Row => {
+    if (i === "Window") return [r, i, "damaged", "Cracked pane, bottom left"];
+    if (i === "Walls") return [r, i, "damaged", "Walls badly marked, needs full repaint"];
+    if (i === "Sofa") return [r, i, "damaged", "Sofa ruined"];
+    return [r, i, c, n];
+  }));
+
 /** A fair claim: only the cracked window. */
 export const fairClaim = (leaseId: number): ClaimDoc => ({
   lease_id: leaseId,

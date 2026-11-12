@@ -72,3 +72,13 @@ test("matching is case and space insensitive, and totals add up", () => {
   assert.equal(a.to_landlord, "80");
   assert.ok(a.confidence_bps >= 6000 && a.confidence_bps <= 10000);
 });
+
+test("conflicting move-out reports: landlord carries the burden of proof (R8)", () => {
+  const landlordVersion: Report = {
+    ...checkout,
+    rooms: checkout.rooms.map((r) => ({ ...r, items: r.items.map((i) => (i.item === "Walls" ? { ...i, condition: "damaged" as const } : i)) })),
+  };
+  const a = assessWithRules(checkin, landlordVersion, claim([["Living room", "Walls", 100]]), checkout);
+  assert.equal(a.to_landlord, "0");
+  assert.equal(a.items[0].rule, "R8");
+});

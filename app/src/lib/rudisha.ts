@@ -94,6 +94,13 @@ export class Rudisha {
     return h;
   }
 
+  /** The other party adds their own move-out report (once, before assessment). */
+  async counterCheckout(who: Key, leaseId: number, report: Report): Promise<string> {
+    const h = put(report);
+    await call(account(who), this.c, "counter_checkout", { lease_id: leaseId, checkout_hash: h });
+    return h;
+  }
+
   returnInFull = (landlord: Key, leaseId: number) => call(account(landlord), this.c, "return_in_full", { lease_id: leaseId });
 
   async fileClaim(landlord: Key, leaseId: number, claim: ClaimDoc): Promise<string> {
@@ -141,21 +148,23 @@ export class Rudisha {
     const checkout = mustGet<Report>(l.checkout_hash, "move-out report");
     const claim = mustGet<ClaimDoc>(l.claim?.items_hash, "claim");
     const dispute = l.dispute_reason_hash ? mustGet<DisputeDoc>(l.dispute_reason_hash, "dispute") : null;
+    const counter = l.counter_checkout_hash ? mustGet<Report>(l.counter_checkout_hash, "second move-out report") : null;
 
     let doc: AssessmentDoc;
     let attestationHash: string;
     let checks: unknown[] = [];
     if (assessorUsesNearAi()) {
-      const r = await assessWithNearAi(checkin, checkout, claim, dispute);
+      const r = await assessWithNearAi(checkin, checkout, claim, dispute, counter);
       doc = r.doc;
       checks = r.checks;
       attestationHash = put({ kind: "nearai-proof", proof: r.proof, checks: r.checks });
     } else {
-      doc = assessWithRules(checkin, checkout, claim);
+      doc = assessWithRules(checkin, checkout, claim, counter);
       // No TEE: the "attestation" is an honest marker that the open rule engine ran.
       attestationHash = put({ kind: "rules-engine", engine: "rules-v1", note: "No TEE. Deterministic rules in src/assessor/rules.ts." });
     }
     const reasonHash = put(doc);
+    if (l.assessor !== this.s.assessor.id) throw new Conflict(`lease ${leaseId} is assigned to assessor ${l.assessor}`);
     await call(account(this.s.assessor), this.c, "submit_assessment", {
       lease_id: leaseId,
       to_landlord: doc.to_landlord,

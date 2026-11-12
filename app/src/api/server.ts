@@ -23,7 +23,7 @@ import { usd } from "../lib/near.js";
 import { Conflict, NotFound, Rudisha } from "../lib/rudisha.js";
 import { DeployState, keyFor, loadState, publicState } from "../lib/state.js";
 import { TamperedError, get, hashOf, put } from "../lib/store.js";
-import { checkin, checkoutClean, checkoutDamaged, fairClaim, inflatedClaim } from "../samples.js";
+import { checkin, checkoutClean, checkoutDamaged, checkoutDoctored, fairClaim, inflatedClaim } from "../samples.js";
 import { iso, present, presentDetail } from "./present.js";
 import { startWorker } from "./worker.js";
 
@@ -205,6 +205,7 @@ export async function buildServer(state: DeployState) {
       checkin: () => checkin(id),
       checkout_clean: () => checkoutClean(id),
       checkout_damaged: () => checkoutDamaged(id),
+      checkout_doctored: () => checkoutDoctored(id),
       claim_fair: () => fairClaim(id),
       claim_inflated: () => inflatedClaim(id),
     };
@@ -308,11 +309,17 @@ async function runDemoAction(r: Rudisha, s: DeployState, a: DemoAction) {
       await r.fund(who, needId());
       break;
     case "sign_checkin":
-    case "submit_checkout": {
+    case "submit_checkout":
+    case "counter_checkout": {
       const rep = a.report ?? (a.action === "sign_checkin" ? checkin(needId()) : checkoutDamaged(needId()));
       const e = validateReport(rep);
       if (e.length) throw new BadRequest(e);
-      const h = a.action === "sign_checkin" ? await r.signCheckin(who, needId(), rep) : await r.submitCheckout(who, needId(), rep);
+      const h =
+        a.action === "sign_checkin"
+          ? await r.signCheckin(who, needId(), rep)
+          : a.action === "submit_checkout"
+            ? await r.submitCheckout(who, needId(), rep)
+            : await r.counterCheckout(who, needId(), rep);
       return { ok: true, hash: h };
     }
     case "return_in_full":

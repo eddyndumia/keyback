@@ -110,6 +110,14 @@ pub struct Lease {
     pub checkin_by_landlord: bool,
     pub checkin_by_tenant: bool,
     pub checkout_hash: Option<String>,
+    /// Who recorded the move-out report.
+    pub checkout_by: Option<AccountId>,
+    /// The other party's own move-out report, if they disagree with the first one.
+    pub counter_checkout_hash: Option<String>,
+    /// Assessor and arbiter are fixed when the lease is created, so nobody can
+    /// swap the judge in the middle of a case.
+    pub assessor: AccountId,
+    pub arbiter: AccountId,
     pub claim: Option<Claim>,
     pub dispute_reason_hash: Option<String>,
     pub assessment: Option<Assessment>,
@@ -230,6 +238,8 @@ impl Contract {
         }
     }
 
+    /// Changes the assessor and arbiter for leases created from now on.
+    /// Existing leases keep the ones they were created with.
     pub fn set_roles(&mut self, assessor: AccountId, arbiter: AccountId) {
         require!(env::predecessor_account_id() == self.admin, "only admin");
         self.assessor = assessor;
@@ -281,6 +291,10 @@ impl Contract {
                 checkin_by_landlord: false,
                 checkin_by_tenant: false,
                 checkout_hash: None,
+                checkout_by: None,
+                counter_checkout_hash: None,
+                assessor: self.assessor.clone(),
+                arbiter: self.arbiter.clone(),
                 claim: None,
                 dispute_reason_hash: None,
                 assessment: None,
@@ -454,11 +468,29 @@ impl Contract {
         {
             let lm = self.lease_mut(lease_id);
             lm.checkout_hash = Some(checkout_hash);
+            lm.checkout_by = Some(caller.clone());
             lm.state = State::MoveOut;
             lm.moveout_at = U64(now());
             lm.deadline = U64(now() + lm.claim_window_secs * NS);
         }
         event("moved_out", lease_id, &format!(",\"by\":\"{caller}\""));
+    }
+
+    /// The party who did NOT record the move-out report can add their own,
+    /// once, any time before the case is assessed. The assessor sees both.
+    pub fn counter_checkout(&mut self, lease_id: u64, checkout_hash: String) {
+        check_hash(&checkout_hash, "checkout_hash");
+        let caller = env::predecessor_account_id();
+        let l = self.lease(lease_id);
+        require!(caller == l.landlord || caller == l.tenant, "only the landlord or tenant");
+        require!(
+            matches!(l.state, State::MoveOut | State::Claimed | State::Disputed),
+            "move-out reports can only be added before the assessment"
+        );
+        require!(l.checkout_by.as_ref() != Some(&caller), "you already recorded the move-out report");
+        require!(l.counter_checkout_hash.is_none(), "a second move-out report was already added");
+        self.lease_mut(lease_id).counter_checkout_hash = Some(checkout_hash);
+        event("counter_checkout", lease_id, &format!(",\"by\":\"{caller}\""));
     }
 
     /// Before move-in only. A funded deposit goes straight back to the tenant.
@@ -512,11 +544,11 @@ impl Contract {
         attestation_hash: String,
         confidence_bps: u16,
     ) {
-        require!(env::predecessor_account_id() == self.assessor, "only the assessor");
         check_hash(&reason_hash, "reason_hash");
         check_hash(&attestation_hash, "attestation_hash");
         require!(confidence_bps <= 10_000, "confidence_bps must be <= 10000");
         let l = self.lease(lease_id);
+        require!(env::predecessor_account_id() == l.assessor, "only the assessor");
         require!(l.state == State::Disputed, "lease is not in dispute");
         require!(now() <= l.deadline.0, "assessment deadline has passed");
         require!(to_landlord.0 <= l.claim.as_ref().unwrap().amount.0, "cannot award more than claimed");
@@ -537,9 +569,9 @@ impl Contract {
 
     pub fn rule(&mut self, lease_id: u64, to_landlord: U128, reason_hash: String) {
         let arbiter = env::predecessor_account_id();
-        require!(arbiter == self.arbiter, "only the arbiter");
         check_hash(&reason_hash, "reason_hash");
         let l = self.lease(lease_id);
+        require!(arbiter == l.arbiter, "only the arbiter");
         require!(l.state == State::Appealed, "lease is not under appeal");
         require!(to_landlord.0 <= l.claim.as_ref().unwrap().amount.0, "cannot award more than claimed");
         self.lease_mut(lease_id).ruling = Some(Ruling {

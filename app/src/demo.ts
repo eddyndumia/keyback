@@ -8,7 +8,7 @@ import { config, assessorUsesNearAi } from "./lib/config.js";
 import { Key, toUnits, usd } from "./lib/near.js";
 import { Rudisha } from "./lib/rudisha.js";
 import { loadState } from "./lib/state.js";
-import { checkin, checkoutClean, checkoutDamaged, fairClaim, inflatedClaim } from "./samples.js";
+import { checkin, checkoutClean, checkoutDamaged, checkoutDoctored, fairClaim, inflatedClaim } from "./samples.js";
 
 const s = loadState();
 const r = new Rudisha(s);
@@ -40,7 +40,12 @@ async function newLease(landlord: Key, tenant: Key, label: string): Promise<numb
 }
 
 async function showMoney(id: number, tenant: Key, landlord: Key) {
-  const l = await r.mustLease(id);
+  // Public RPC nodes can lag a block behind the write we just made: wait for it to land.
+  let l = await r.mustLease(id);
+  for (let i = 0; i < 10 && !["Settled", "Cancelled"].includes(l.state); i++) {
+    await sleep(1000);
+    l = await r.mustLease(id);
+  }
   say(`state=${l.state} | tenant got ${usd(l.paid_to_tenant)} | landlord got ${usd(l.paid_to_landlord)}`);
   say(`claimable now: tenant ${usd(await r.claimable(tenant.id))}, landlord ${usd(await r.claimable(landlord.id))}`);
 }
@@ -94,6 +99,23 @@ const scenarios: Record<string, [string, () => Promise<void>]> = {
     });
     say("arbiter upheld the assessment");
     await showMoney(id, P.wanjiru, P.kamau);
+  }],
+  E: ["Landlord files a doctored move-out report; the tenant answers it", async () => {
+    const id = await newLease(P.kamau, P.otieno, "Kileleshwa 1BR");
+    await r.submitCheckout(P.kamau, id, checkoutDoctored(id));
+    say("landlord recorded move-out first, writing up scuffed walls and a faded sofa as 'damaged'");
+    await r.counterCheckout(P.otieno, id, checkoutDamaged(id));
+    say("tenant added their own move-out report: walls and sofa 'fair', window cracked");
+    await r.fileClaim(P.kamau, id, inflatedClaim(id));
+    say(`landlord claimed ${usd(toUnits(450))}`);
+    await r.dispute(P.otieno, id, { lease_id: id, by: P.otieno.id, text: "The landlord's report exaggerates. My report and photos show normal wear." });
+    const a = await r.assess(id);
+    say(`assessor awarded ${usd(a.doc.to_landlord)} of ${usd(toUnits(450))}:`);
+    for (const it of a.doc.items) say(`   ${it.rule}  ${it.item.padEnd(9)} ${usd(it.claimed).padStart(8)} -> ${usd(it.allowed).padStart(8)}`);
+    say("nobody appeals; the keeper (or anyone) applies it when the appeal window closes");
+    await sleep((WINDOW + 3) * 1000);
+    await r.finalize(P.otieno, id);
+    await showMoney(id, P.otieno, P.kamau);
   }],
   D: ["Landlord goes silent: the deadline protects the tenant", async () => {
     const id = await newLease(P.kamau, P.achieng, "South B studio");

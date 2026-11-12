@@ -7,7 +7,7 @@
       "compiler": "rustc 1.99.1",
       "builder": "cargo-near cargo-near-build 0.11.5"
     },
-    "wasm_hash": "DZjZgArGEyAH55TxYoRpPMaueL9Q6JBP7yCXb4isC1LV"
+    "wasm_hash": "DbWbDf6Y4hD11X4tzokbCms3rWAaemmm9325Rtza7vPs"
   },
   "body": {
     "functions": [
@@ -73,6 +73,30 @@
       {
         "name": "contract_source_metadata",
         "kind": "view"
+      },
+      {
+        "name": "counter_checkout",
+        "doc": " The party who did NOT record the move-out report can add their own,\n once, any time before the case is assessed. The assessor sees both.",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "lease_id",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            {
+              "name": "checkout_hash",
+              "type_schema": {
+                "type": "string"
+              }
+            }
+          ]
+        }
       },
       {
         "name": "create_lease",
@@ -521,6 +545,7 @@
       },
       {
         "name": "set_roles",
+        "doc": " Changes the assessor and arbiter for leases created from now on.\n Existing leases keep the ones they were created with.",
         "kind": "call",
         "params": {
           "serialization_type": "json",
@@ -758,6 +783,8 @@
           "required": [
             "active_at",
             "appeal_window_secs",
+            "arbiter",
+            "assessor",
             "checkin_by_landlord",
             "checkin_by_tenant",
             "claim_window_secs",
@@ -796,6 +823,10 @@
               "format": "uint64",
               "minimum": 0.0
             },
+            "arbiter": {
+              "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+              "type": "string"
+            },
             "assessment": {
               "anyOf": [
                 {
@@ -806,6 +837,10 @@
                 }
               ]
             },
+            "assessor": {
+              "description": "Assessor and arbiter are fixed when the lease is created, so nobody can swap the judge in the middle of a case.",
+              "type": "string"
+            },
             "checkin_by_landlord": {
               "type": "boolean"
             },
@@ -813,6 +848,13 @@
               "type": "boolean"
             },
             "checkin_hash": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "checkout_by": {
+              "description": "Who recorded the move-out report.",
               "type": [
                 "string",
                 "null"
@@ -838,6 +880,13 @@
               "type": "integer",
               "format": "uint64",
               "minimum": 0.0
+            },
+            "counter_checkout_hash": {
+              "description": "The other party's own move-out report, if they disagree with the first one.",
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "created_at": {
               "type": "string"

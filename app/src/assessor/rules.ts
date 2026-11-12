@@ -21,6 +21,7 @@ export const RULES = [
   "R5 Betterment: a landlord cannot charge for an upgrade. An item that was already worn at move-in is capped at half the claim.",
   "R6 Cleaning: cleaning is chargeable only if the move-out report shows the item worse than at move-in.",
   "R7 Totals: the award never exceeds the claim, and every item gets a written reason.",
+  "R8 Burden of proof: if the landlord's and tenant's move-out reports disagree about an item, the landlord has not proved it, so the tenant's version is used.",
 ] as const;
 
 const rank = (c: Condition) => CONDITIONS.indexOf(c);
@@ -31,19 +32,29 @@ function find(report: Report, room: string, item: string): ReportItem | undefine
   return r?.items.find((x) => norm(x.item) === norm(item));
 }
 
-/** Deterministic assessment used when no NEAR AI key is configured, and as a cross-check. */
-export function assessWithRules(checkin: Report, checkout: Report, claim: ClaimDoc): AssessmentDoc {
+/**
+ * Deterministic assessment used when no NEAR AI key is configured, and as a cross-check.
+ * `counter` is the other party's move-out report, if one was added.
+ */
+export function assessWithRules(checkin: Report, checkout: Report, claim: ClaimDoc, counter: Report | null = null): AssessmentDoc {
   const items: AssessedItem[] = claim.items.map((ci) => {
     const before = find(checkin, ci.room, ci.item);
-    const after = find(checkout, ci.room, ci.item);
+    const first = find(checkout, ci.room, ci.item);
+    const second = counter ? find(counter, ci.room, ci.item) : undefined;
+    // R8: where the two move-out reports disagree, use the better condition (tenant's favour).
+    const conflict = Boolean(first && second && first.condition !== second.condition);
+    const after = first && second ? (rank(second.condition) < rank(first.condition) ? second : first) : (first ?? second);
+    const note = conflict
+      ? ` The two move-out reports disagree ("${first!.condition}" vs "${second!.condition}"); the landlord carries the burden of proof (R8).`
+      : "";
     const claimed = BigInt(ci.amount);
     const out = (allowed: bigint, rule: string, reason: string): AssessedItem => ({
       room: ci.room,
       item: ci.item,
       claimed: claimed.toString(),
       allowed: allowed.toString(),
-      rule,
-      reason,
+      rule: conflict && allowed < claimed ? "R8" : rule,
+      reason: reason + note,
     });
 
     if (!before || !after) {

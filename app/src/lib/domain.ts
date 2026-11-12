@@ -28,6 +28,10 @@ export type Lease = {
   checkin_by_landlord: boolean;
   checkin_by_tenant: boolean;
   checkout_hash: string | null;
+  checkout_by: string | null;
+  counter_checkout_hash: string | null;
+  assessor: string;
+  arbiter: string;
   claim: { amount: string; items_hash: string; filed_at: string } | null;
   dispute_reason_hash: string | null;
   assessment: {

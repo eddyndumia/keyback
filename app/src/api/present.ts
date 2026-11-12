@@ -61,6 +61,7 @@ export function actionsFor(l: Lease, nowMs = Date.now()): Action[] {
       break;
     }
     case "MoveOut":
+      counterAction(l, add);
       if (open) {
         add("return_in_full", "landlord", "Return the deposit in full");
         add("file_claim", "landlord", "Claim deductions", { before: dl });
@@ -68,6 +69,7 @@ export function actionsFor(l: Lease, nowMs = Date.now()): Action[] {
       if (passed) add("finalize", "anyone", "No claim was filed: release the full deposit to the tenant");
       break;
     case "Claimed":
+      counterAction(l, add);
       if (open) {
         add("accept_claim", "tenant", "Accept the claim");
         add("dispute", "tenant", "Dispute the claim", { before: dl });
@@ -75,6 +77,7 @@ export function actionsFor(l: Lease, nowMs = Date.now()): Action[] {
       if (passed) add("finalize", "anyone", "No response: the claim stands");
       break;
     case "Disputed":
+      counterAction(l, add);
       if (open) add("assess", "assessor", "Assess the dispute", { before: dl });
       if (passed) {
         add("appeal", "landlord", "Assessor missed its deadline: go to the arbiter");
@@ -93,6 +96,12 @@ export function actionsFor(l: Lease, nowMs = Date.now()): Action[] {
       break;
   }
   return out;
+}
+
+function counterAction(l: Lease, add: (a: string, r: Role, label: string) => void) {
+  if (l.counter_checkout_hash) return;
+  const other: Role = l.checkout_by === l.landlord ? "tenant" : "landlord";
+  add("counter_checkout", other, "Add your own move-out report (if you disagree)");
 }
 
 export type TimelineEntry = { at: string; event: string; detail?: string };
@@ -144,6 +153,7 @@ export function presentDetail(l: Lease, nowMs = Date.now()) {
     documents: {
       checkin: doc(l.checkin_hash),
       checkout: doc(l.checkout_hash),
+      counter_checkout: doc(l.counter_checkout_hash),
       claim: doc(l.claim?.items_hash),
       dispute: doc(l.dispute_reason_hash),
       assessment: doc(l.assessment?.reason_hash),

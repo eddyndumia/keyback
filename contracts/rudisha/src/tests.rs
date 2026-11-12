@@ -43,7 +43,7 @@ fn create(c: &mut Contract) -> u64 {
 
 fn fund(c: &mut Contract, lease: u64) {
     ctx(TOKEN, 0, START + 1);
-    c.ft_on_transfer(id(TENANT), U128(DEP), format!("{{\"lease_id\":{lease}}}"));
+    let _ = c.ft_on_transfer(id(TENANT), U128(DEP), format!("{{\"lease_id\":{lease}}}"));
 }
 
 fn activate(c: &mut Contract, lease: u64) {
@@ -143,7 +143,7 @@ fn funding_from_other_token_rejected() {
     let mut c = new_contract();
     let l = create(&mut c);
     ctx(STRANGER, 0, START + 1);
-    c.ft_on_transfer(id(TENANT), U128(DEP), format!("{{\"lease_id\":{l}}}"));
+    let _ = c.ft_on_transfer(id(TENANT), U128(DEP), format!("{{\"lease_id\":{l}}}"));
 }
 
 #[test]
@@ -152,7 +152,7 @@ fn funding_by_non_tenant_rejected() {
     let mut c = new_contract();
     let l = create(&mut c);
     ctx(TOKEN, 0, START + 1);
-    c.ft_on_transfer(id(STRANGER), U128(DEP), format!("{{\"lease_id\":{l}}}"));
+    let _ = c.ft_on_transfer(id(STRANGER), U128(DEP), format!("{{\"lease_id\":{l}}}"));
 }
 
 #[test]
@@ -161,7 +161,7 @@ fn funding_wrong_amount_rejected() {
     let mut c = new_contract();
     let l = create(&mut c);
     ctx(TOKEN, 0, START + 1);
-    c.ft_on_transfer(id(TENANT), U128(DEP - 1), format!("{{\"lease_id\":{l}}}"));
+    let _ = c.ft_on_transfer(id(TENANT), U128(DEP - 1), format!("{{\"lease_id\":{l}}}"));
 }
 
 #[test]
@@ -179,7 +179,7 @@ fn funding_bad_msg_rejected() {
     let mut c = new_contract();
     create(&mut c);
     ctx(TOKEN, 0, START + 1);
-    c.ft_on_transfer(id(TENANT), U128(DEP), "hello".into());
+    let _ = c.ft_on_transfer(id(TENANT), U128(DEP), "hello".into());
 }
 
 // ------------------------------------------------------------ check-in
@@ -500,4 +500,91 @@ fn failed_withdrawal_restores_balance() {
     );
     assert!(!c.on_withdraw(id(TENANT), U128(DEP)));
     assert_eq!(claimable(&c, TENANT), DEP);
+}
+
+// ------------------------------------------------------------ trust fixes
+
+#[test]
+fn role_change_does_not_touch_open_cases() {
+    let (mut c, l) = disputed(100_000_000);
+    ctx(ADMIN, 0, END + 21);
+    c.set_roles(id(STRANGER), id(STRANGER));
+    // the lease keeps the assessor it was created with
+    ctx(ASSESSOR, 0, END + 30);
+    c.submit_assessment(l, U128(1), H1.into(), H2.into(), 8_000);
+    assert_eq!(c.get_lease(l).unwrap().state, State::Assessed);
+}
+
+#[test]
+#[should_panic(expected = "only the assessor")]
+fn new_assessor_cannot_judge_old_case() {
+    let (mut c, l) = disputed(100_000_000);
+    ctx(ADMIN, 0, END + 21);
+    c.set_roles(id(STRANGER), id(STRANGER));
+    ctx(STRANGER, 0, END + 30);
+    c.submit_assessment(l, U128(1), H1.into(), H2.into(), 8_000);
+}
+
+#[test]
+#[should_panic(expected = "only the arbiter")]
+fn admin_cannot_become_arbiter_mid_case() {
+    let (mut c, l) = assessed(300_000_000, 60_000_000);
+    ctx(TENANT, 0, END + 40);
+    c.appeal(l, H1.into());
+    ctx(ADMIN, 0, END + 41);
+    c.set_roles(id(ADMIN), id(ADMIN));
+    ctx(ADMIN, 0, END + 50);
+    c.rule(l, U128(300_000_000), H2.into());
+}
+
+#[test]
+fn other_party_can_answer_the_move_out_report() {
+    // tenant recorded move-out in at_moveout(); the landlord answers with their own
+    let (mut c, l) = at_moveout();
+    ctx(LANDLORD, 0, END + 5);
+    c.counter_checkout(l, H1.into());
+    let lease = c.get_lease(l).unwrap();
+    assert_eq!(lease.checkout_by.unwrap(), id(TENANT));
+    assert_eq!(lease.counter_checkout_hash.unwrap(), H1);
+}
+
+#[test]
+fn tenant_can_answer_during_a_dispute() {
+    let mut c = new_contract();
+    let l = create(&mut c);
+    fund(&mut c, l);
+    activate(&mut c, l);
+    ctx(LANDLORD, 0, END);
+    c.submit_checkout(l, H2.into());
+    ctx(LANDLORD, 0, END + 10);
+    c.file_claim(l, U128(100_000_000), H1.into());
+    ctx(TENANT, 0, END + 20);
+    c.dispute(l, H2.into());
+    c.counter_checkout(l, H1.into());
+    assert!(c.get_lease(l).unwrap().counter_checkout_hash.is_some());
+}
+
+#[test]
+#[should_panic(expected = "you already recorded the move-out report")]
+fn cannot_answer_your_own_report() {
+    let (mut c, l) = at_moveout();
+    ctx(TENANT, 0, END + 5);
+    c.counter_checkout(l, H1.into());
+}
+
+#[test]
+#[should_panic(expected = "a second move-out report was already added")]
+fn only_one_answer() {
+    let (mut c, l) = at_moveout();
+    ctx(LANDLORD, 0, END + 5);
+    c.counter_checkout(l, H1.into());
+    c.counter_checkout(l, H2.into());
+}
+
+#[test]
+#[should_panic(expected = "move-out reports can only be added before the assessment")]
+fn no_new_evidence_after_assessment() {
+    let (mut c, l) = assessed(300_000_000, 60_000_000);
+    ctx(LANDLORD, 0, END + 40);
+    c.counter_checkout(l, H1.into());
 }

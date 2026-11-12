@@ -44,10 +44,11 @@ Amounts are integers in tUSD units (1 tUSD = 1000000 units). Never award more th
 Reply with JSON only, no prose outside it:
 {"items":[{"room":string,"item":string,"claimed":string,"allowed":string,"rule":"R1".."R7","reason":string}],"confidence_bps":integer 0-10000,"summary":string}`;
 
-function caseText(checkin: Report, checkout: Report, claim: ClaimDoc, dispute: DisputeDoc | null) {
+function caseText(checkin: Report, checkout: Report, claim: ClaimDoc, dispute: DisputeDoc | null, counter: Report | null) {
   return JSON.stringify({
     move_in_report: checkin,
     move_out_report: checkout,
+    second_move_out_report_from_the_other_party: counter,
     landlord_claim: claim,
     tenant_dispute: dispute ? dispute.text : null,
   });
@@ -95,6 +96,7 @@ export async function assessWithNearAi(
   checkout: Report,
   claim: ClaimDoc,
   dispute: DisputeDoc | null,
+  counter: Report | null = null,
 ): Promise<{ doc: AssessmentDoc; proof: ProofBundle; checks: Check[] }> {
   const model = config.nearAiModel;
   const nonce = randomBytes(32).toString("hex");
@@ -107,7 +109,7 @@ export async function assessWithNearAi(
     temperature: 0,
     messages: [
       { role: "system", content: SYSTEM },
-      { role: "user", content: caseText(checkin, checkout, claim, dispute) },
+      { role: "user", content: caseText(checkin, checkout, claim, dispute, counter) },
     ],
   });
   const res = await fetch(`${config.nearAiBase}/chat/completions`, {
@@ -141,7 +143,7 @@ export async function assessWithNearAi(
     doc = parseModelReply(content, claim, model);
   } catch (e) {
     // An unreadable reply must not decide anyone's money: fall back to the rules.
-    doc = { ...assessWithRules(checkin, checkout, claim), summary: `Model reply unreadable (${(e as Error).message}); rules applied.` };
+    doc = { ...assessWithRules(checkin, checkout, claim, counter), summary: `Model reply unreadable (${(e as Error).message}); rules applied.` };
   }
   return { doc, proof, checks };
 }
