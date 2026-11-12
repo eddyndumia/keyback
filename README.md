@@ -4,6 +4,7 @@ Rent deposit protection on NEAR. The tenant pays the deposit into a contract ins
 
 Built for the NEAR Hackathon (Real-World Money and Privacy tracks).
 
+- Live demo: **https://keyback.onrender.com** (free hosting, so the first load after a quiet spell takes about a minute)
 - Contract on testnet: [`deposits.keyback-rmwdjbb4t.testnet`](https://testnet.nearblocks.io/address/deposits.keyback-rmwdjbb4t.testnet)
 - Test stablecoin (NEP-141, 6 decimals): [`tusd.keyback-rmwdjbb4t.testnet`](https://testnet.nearblocks.io/address/tusd.keyback-rmwdjbb4t.testnet)
 
