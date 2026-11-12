@@ -2,6 +2,7 @@
 // a human timeline, ISO times, and resolved evidence documents.
 import type { Lease, LeaseState } from "../lib/domain.js";
 import { get } from "../lib/store.js";
+import { usd } from "../lib/near.js";
 
 export type Role = "landlord" | "tenant" | "assessor" | "arbiter" | "anyone";
 export type Action = {
@@ -112,15 +113,15 @@ export function timeline(l: Lease): TimelineEntry[] {
     const at = ns ? iso(ns) : null;
     if (at) t.push({ at, event, detail });
   };
-  push(l.created_at, "Lease created", `Deposit ${l.deposit} units`);
-  push(l.funded_at, "Deposit paid into Rudisha");
-  push(l.active_at, "Move-in report signed by both");
+  push(l.created_at, "Lease created", `Deposit of ${usd(l.deposit)}`);
+  push(l.funded_at, "Tenant paid the deposit into the contract");
+  push(l.active_at, "Both signed the move-in report");
   push(l.moveout_at, "Move-out report recorded");
-  push(l.claim?.filed_at, "Landlord filed a claim", `Claimed ${l.claim?.amount} units`);
-  push(l.assessment?.at, "Assessor ruled", `Awarded ${l.assessment?.to_landlord} units to the landlord`);
-  push(l.appeal?.at, "Appealed", `By ${l.appeal?.by}`);
-  push(l.ruling?.at, "Arbiter ruled", `Awarded ${l.ruling?.to_landlord} units to the landlord`);
-  push(l.settled_at, l.state === "Cancelled" ? "Cancelled" : "Settled");
+  push(l.claim?.filed_at, "Landlord filed a claim", l.claim ? `Wants to keep ${usd(l.claim.amount)}` : undefined);
+  push(l.assessment?.at, "Assessor decided", l.assessment ? `${usd(l.assessment.to_landlord)} to the landlord` : undefined);
+  push(l.appeal?.at, "Sent to the human arbiter", l.appeal ? `Asked by ${l.appeal.by}` : undefined);
+  push(l.ruling?.at, "Arbiter made the final call", l.ruling ? `${usd(l.ruling.to_landlord)} to the landlord` : undefined);
+  push(l.settled_at, l.state === "Cancelled" ? "Cancelled" : "Money paid out", l.state === "Cancelled" ? undefined : `${usd(l.paid_to_tenant)} to the tenant, ${usd(l.paid_to_landlord)} to the landlord`);
   return t.sort((a, b) => a.at.localeCompare(b.at));
 }
 

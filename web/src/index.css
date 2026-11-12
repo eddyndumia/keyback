@@ -1,0 +1,443 @@
+/* Cloudscape supplies the product UI. This file covers the landing page,
+   the illustrations, and a few product details Cloudscape does not have. */
+:root {
+  --kb-purple-700: #4b1fa8;
+  --kb-purple-600: #5b2bc9;
+  --kb-purple-500: #6d3ee0;
+  --kb-purple-300: #b59cf5;
+  --kb-purple-100: #efe9fd;
+  --kb-purple-50: #f7f4fe;
+  --kb-ink: #0f141a;
+  --kb-ink-2: #232b37;
+  --kb-text-2: #5f6b7a;
+  --kb-line: #e3e6ea;
+  --kb-tenant: #1d8102;
+  --kb-landlord: #5b2bc9;
+  --kb-held: #8d99a8;
+  --kb-max: 1180px;
+}
+
+body {
+  margin: 0;
+  background: #fff;
+  font-family: 'Open Sans', 'Helvetica Neue', Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono {
+  font-family: Monaco, Menlo, Consolas, 'Courier Prime', monospace;
+  font-size: 12px;
+}
+
+/* ---------- product details ---------- */
+
+.money-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--kb-line);
+  margin: 4px 0 10px;
+}
+.money-bar > span {
+  height: 100%;
+}
+.money-bar .t {
+  background: var(--kb-tenant);
+}
+.money-bar .l {
+  background: var(--kb-landlord);
+}
+.money-bar .h {
+  background: var(--kb-held);
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 14px;
+}
+.legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+.cond {
+  font-weight: 700;
+  text-transform: capitalize;
+}
+.cond-new,
+.cond-good {
+  color: #1d8102;
+}
+.cond-fair,
+.cond-worn {
+  color: #8d6605;
+}
+.cond-damaged,
+.cond-missing {
+  color: #d13212;
+}
+.viewer-note {
+  background: var(--kb-purple-50);
+  border: 1px solid var(--kb-purple-100);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--kb-ink-2);
+}
+
+/* ---------- landing ---------- */
+
+.lp {
+  color: var(--kb-ink);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.lp a {
+  color: var(--kb-purple-600);
+}
+.lp-wrap {
+  max-width: var(--kb-max);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.lp-section {
+  padding: 88px 0;
+}
+.lp-section.tint {
+  background: var(--kb-purple-50);
+}
+.lp-section.dark {
+  background: var(--kb-ink);
+  color: #e9ebed;
+}
+.lp-kicker {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--kb-purple-600);
+  margin: 0 0 12px;
+}
+.dark .lp-kicker {
+  color: var(--kb-purple-300);
+}
+.lp h1 {
+  font-size: clamp(40px, 6vw, 64px);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  font-weight: 800;
+  margin: 0 0 20px;
+}
+.lp h2 {
+  font-size: clamp(28px, 3.6vw, 40px);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  margin: 0 0 16px;
+  max-width: 760px;
+}
+.lp h3 {
+  font-size: 19px;
+  line-height: 1.3;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+.lp p {
+  margin: 0 0 16px;
+}
+.lp-lede {
+  font-size: 20px;
+  line-height: 1.55;
+  color: var(--kb-text-2);
+  max-width: 600px;
+}
+.dark .lp-lede,
+.dark p {
+  color: #b6bec9;
+}
+
+.lp-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 72px 0 96px;
+  background:
+    radial-gradient(circle at 85% 20%, var(--kb-purple-100) 0, transparent 42%),
+    radial-gradient(circle at 10% 110%, #f3f0fb 0, transparent 40%);
+}
+.lp-hero-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+.lp-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 28px 0 20px;
+}
+.lp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 16px;
+  text-decoration: none !important;
+  border: 2px solid var(--kb-purple-600);
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+}
+.lp-btn.primary {
+  background: var(--kb-purple-600);
+  color: #fff !important;
+}
+.lp-btn.primary:hover {
+  background: var(--kb-purple-700);
+  border-color: var(--kb-purple-700);
+}
+.lp-btn.ghost {
+  color: var(--kb-purple-600);
+  background: #fff;
+}
+.lp-btn.ghost:hover {
+  background: var(--kb-purple-50);
+}
+.lp-btn:focus-visible {
+  outline: 3px solid var(--kb-purple-300);
+  outline-offset: 2px;
+}
+.lp-fine {
+  font-size: 14px;
+  color: var(--kb-text-2);
+}
+
+.lp-ticket {
+  position: relative;
+  background: #fff;
+  border: 2px solid var(--kb-ink);
+  border-radius: 16px;
+  box-shadow: 8px 8px 0 var(--kb-purple-600);
+  padding: 20px 22px;
+}
+
+.lp-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: center;
+}
+.lp-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.lp-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.lp-step {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--kb-line);
+  border-radius: 16px;
+  padding: 24px 22px 22px;
+}
+.lp-step .n {
+  position: absolute;
+  top: -14px;
+  left: 20px;
+  background: var(--kb-ink);
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  border-radius: 999px;
+  padding: 3px 11px;
+}
+.lp-step svg {
+  display: block;
+  height: 76px;
+  margin: 6px 0 14px;
+}
+.lp-step p {
+  font-size: 15px;
+  color: var(--kb-text-2);
+  margin: 0;
+}
+
+.lp-rule {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 14px;
+  padding: 18px 0;
+  border-top: 1px solid var(--kb-line);
+}
+.lp-rule:last-child {
+  border-bottom: 1px solid var(--kb-line);
+}
+.lp-rule b {
+  display: block;
+  margin-bottom: 2px;
+}
+.lp-rule span {
+  color: var(--kb-text-2);
+  font-size: 15px;
+}
+.lp-rule .ic {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--kb-purple-100);
+  display: grid;
+  place-items: center;
+}
+
+.lp-card {
+  background: #fff;
+  border: 1px solid var(--kb-line);
+  border-radius: 16px;
+  padding: 24px;
+}
+.dark .lp-card {
+  background: var(--kb-ink-2);
+  border-color: #333d4a;
+}
+.dark .lp-card h3 {
+  color: #fff;
+}
+
+.lp-compare {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.lp-compare th,
+.lp-compare td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--kb-line);
+  vertical-align: top;
+}
+.lp-compare th {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--kb-text-2);
+}
+.lp-compare td:nth-child(3) {
+  background: var(--kb-purple-50);
+  font-weight: 600;
+}
+
+.lp-code {
+  background: #0b0e12;
+  color: #d5dbe3;
+  border-radius: 12px;
+  padding: 18px 20px;
+  font-family: Monaco, Menlo, Consolas, monospace;
+  font-size: 13.5px;
+  line-height: 1.7;
+  overflow-x: auto;
+  white-space: pre;
+}
+.lp-code .c {
+  color: #7d8896;
+}
+
+.lp-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: #333d4a;
+  border: 1px solid #333d4a;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-top: 40px;
+}
+.lp-stats div {
+  background: var(--kb-ink);
+  padding: 22px 20px;
+}
+.lp-stats b {
+  display: block;
+  font-size: 34px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+.lp-stats span {
+  font-size: 14px;
+  color: #9aa5b2;
+}
+
+.lp-foot {
+  background: var(--kb-ink);
+  color: #9aa5b2;
+  font-size: 14px;
+  padding: 36px 0;
+}
+.lp-foot a {
+  color: #d5dbe3;
+}
+
+.doodle {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+@media (max-width: 960px) {
+  .lp-hero-grid,
+  .lp-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .lp-grid-3,
+  .lp-grid-4,
+  .lp-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  .lp-section {
+    padding: 64px 0;
+  }
+}
+@media (max-width: 560px) {
+  .lp-grid-3,
+  .lp-grid-4,
+  .lp-stats {
+    grid-template-columns: 1fr;
+  }
+  .lp-compare th:first-child,
+  .lp-compare td:first-child {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+@media (max-width: 760px) {
+  .hide-sm {
+    display: none;
+  }
+}
+
+/* Keep the product name whole in the console top bar. */
+#kb-top [class*="awsui_identity_"],
+#kb-top [class*="awsui_identity-link_"] {
+  flex-shrink: 0 !important;
+  min-inline-size: max-content !important;
+}
+#kb-top [class*="awsui_title_"] {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  min-inline-size: max-content !important;
+}

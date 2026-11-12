@@ -1,4 +1,4 @@
-// Domain types: the on-chain lease (mirrors contracts/rudisha) and the off-chain
+// Domain types: the on-chain lease (mirrors contracts/keyback) and the off-chain
 // evidence documents whose hashes go on-chain.
 
 export type LeaseState =

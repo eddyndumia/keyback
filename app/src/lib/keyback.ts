@@ -1,4 +1,4 @@
-// Typed client for the Rudisha contract. Every write stores its evidence
+// Typed client for the Keyback contract. Every write stores its evidence
 // document first, then puts only the document's hash on-chain.
 import { teraToGas } from "near-api-js";
 import { assessWithNearAi } from "../assessor/nearai.js";
@@ -29,7 +29,7 @@ export type LeaseTerms = {
   appeal_window_secs: number;
 };
 
-export class Rudisha {
+export class Keyback {
   constructor(readonly s: DeployState) {}
 
   private get c() {

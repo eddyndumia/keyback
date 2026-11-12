@@ -13,7 +13,7 @@ const TRANSIENT = /fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN|socket hang up|ti
 
 /**
  * Retries network failures only. Contract rejections are never retried.
- * Retrying a write is safe here because every Rudisha transition is guarded
+ * Retrying a write is safe here because every Keyback transition is guarded
  * by state (a settled lease cannot settle twice, an empty balance cannot be withdrawn).
  */
 export async function withRetry<T>(fn: () => Promise<T>, tries = 4): Promise<T> {
@@ -75,7 +75,7 @@ export function usd(units: string | bigint | number): string {
   const v = BigInt(units);
   const whole = v / USD;
   const cents = ((v % USD) / 10_000n).toString().padStart(2, "0");
-  return `$${whole.toLocaleString("en-US")}.${cents}`;
+  return cents === "00" ? `$${whole.toLocaleString("en-US")}` : `$${whole.toLocaleString("en-US")}.${cents}`;
 }
 
 export const toUnits = (dollars: number): bigint => BigInt(Math.round(dollars * 100)) * 10_000n;

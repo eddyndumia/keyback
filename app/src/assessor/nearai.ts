@@ -42,7 +42,7 @@ Apply these rules strictly and cite one rule id per item:
 ${RULES.join("\n")}
 Amounts are integers in tUSD units (1 tUSD = 1000000 units). Never award more than claimed per item.
 Reply with JSON only, no prose outside it:
-{"items":[{"room":string,"item":string,"claimed":string,"allowed":string,"rule":"R1".."R7","reason":string}],"confidence_bps":integer 0-10000,"summary":string}`;
+{"items":[{"room":string,"item":string,"claimed":string,"allowed":string,"rule":"R1".."R8","reason":string}],"confidence_bps":integer 0-10000,"summary":string}`;
 
 function caseText(checkin: Report, checkout: Report, claim: ClaimDoc, dispute: DisputeDoc | null, counter: Report | null) {
   return JSON.stringify({

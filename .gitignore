@@ -1,5 +1,7 @@
 node_modules/
 target/
-.rudisha/
+.keyback/
 .env
 *.log
+TRASH/
+TRASH-FILES.md

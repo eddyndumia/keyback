@@ -1,6 +1,6 @@
 // The deposit rules every assessment applies, in plain words and as code.
 // They follow what deposit-protection schemes (UK TDS/DPS, Australian bond
-// boards) apply, and what Kenyan tenancy guidance expects: the landlord must
+// boards) apply: the landlord must
 // prove each deduction with the move-in and move-out reports.
 
 import {
@@ -88,8 +88,15 @@ export function assessWithRules(checkin: Report, checkout: Report, claim: ClaimD
     to_landlord: to_landlord.toString(),
     confidence_bps,
     items,
-    summary: `${allowedCount} of ${items.length} claimed items allowed. Award ${to_landlord} of ${claim.items
-      .reduce((s, i) => s + BigInt(i.amount), 0n)
-      .toString()} units claimed.`,
+    summary: `${allowedCount} of ${items.length} claimed items allowed. ${dollars(to_landlord)} of the ${dollars(
+      claim.items.reduce((s, i) => s + BigInt(i.amount), 0n),
+    )} claimed goes to the landlord.`,
   };
+}
+
+/** $60 or $60.50 (tUSD has 6 decimals). Kept here so the rules have no network imports. */
+function dollars(units: bigint): string {
+  const whole = units / 1_000_000n;
+  const cents = (units % 1_000_000n) / 10_000n;
+  return `$${whole.toLocaleString("en-US")}${cents ? "." + cents.toString().padStart(2, "0") : ""}`;
 }

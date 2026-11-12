@@ -5,13 +5,13 @@
 // It holds only the assessor key and a funded keeper key, never user keys.
 import type { FastifyBaseLogger } from "fastify";
 import { config } from "../lib/config.js";
-import { Rudisha } from "../lib/rudisha.js";
+import { Keyback } from "../lib/keyback.js";
 import { DeployState, loadState } from "../lib/state.js";
 
 type Log = Pick<FastifyBaseLogger, "info" | "warn" | "error">;
 
 export function startWorker(state: DeployState, log: Log): () => void {
-  const r = new Rudisha(state);
+  const r = new Keyback(state);
   const inFlight = new Set<number>();
   let stopped = false;
 

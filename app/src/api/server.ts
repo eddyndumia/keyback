@@ -1,4 +1,4 @@
-// Rudisha HTTP API (Fastify). Read endpoints for any UI, an evidence store, a
+// Keyback HTTP API (Fastify). Read endpoints for any UI, an evidence store, a
 // CSV export, proof verification, and (DEMO_SIGNER=1 only) a demo signer that
 // acts as the fictional characters so the whole flow can be clicked through.
 //
@@ -20,7 +20,7 @@ import {
   validateText,
 } from "../lib/domain.js";
 import { usd } from "../lib/near.js";
-import { Conflict, NotFound, Rudisha } from "../lib/rudisha.js";
+import { Conflict, NotFound, Keyback } from "../lib/keyback.js";
 import { DeployState, keyFor, loadState, publicState } from "../lib/state.js";
 import { TamperedError, get, hashOf, put } from "../lib/store.js";
 import { checkin, checkoutClean, checkoutDamaged, checkoutDoctored, fairClaim, inflatedClaim } from "../samples.js";
@@ -52,7 +52,7 @@ function cached<T>(ttlMs: number) {
 }
 
 export async function buildServer(state: DeployState) {
-  const r = new Rudisha(state);
+  const r = new Keyback(state);
   const app = Fastify({
     logger: { level: process.env.LOG_LEVEL ?? "info" },
     genReqId: (req) => (req.headers["x-request-id"] as string) || randomUUID(),
@@ -172,7 +172,7 @@ export async function buildServer(state: DeployState) {
       ]),
     ];
     reply.header("content-type", "text/csv; charset=utf-8");
-    reply.header("content-disposition", `attachment; filename="rudisha-${acct ?? "all"}.csv"`);
+    reply.header("content-disposition", `attachment; filename="keyback-${acct ?? "all"}.csv"`);
     return rows.map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
   });
 
@@ -239,7 +239,7 @@ const csvCell = (v: unknown) => {
   return /[",\r\n]/.test(s) || /^[=+\-@]/.test(s) ? `"${s.replace(/"/g, '""').replace(/^([=+\-@])/, "'$1")}"` : s;
 };
 
-function withDerived(rec: Awaited<ReturnType<Rudisha["record"]>>) {
+function withDerived(rec: Awaited<ReturnType<Keyback["record"]>>) {
   const held = BigInt(rec.deposits_held);
   const returnedPct = held > 0n ? Number((BigInt(rec.returned_to_tenants) * 1000n) / held) / 10 : null;
   const avgDays = rec.landlord_settled ? rec.return_secs_total / rec.landlord_settled / 86400 : null;
@@ -274,7 +274,7 @@ type DemoAction = {
   to_landlord?: string;
 };
 
-async function runDemoAction(r: Rudisha, s: DeployState, a: DemoAction) {
+async function runDemoAction(r: Keyback, s: DeployState, a: DemoAction) {
   if (!a || typeof a.as !== "string" || typeof a.action !== "string") throw new BadRequest(["as and action are required"]);
   const who = a.as === "assessor" ? s.assessor : a.as === "arbiter" ? s.arbiter : keyFor(s, a.as);
   const id = a.lease_id ?? -1;

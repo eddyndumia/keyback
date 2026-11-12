@@ -1,9 +1,9 @@
 {
-  "name": "rudisha",
+  "name": "keyback",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Rudisha: rent deposit protection on NEAR",
+  "description": "Keyback: rent deposit protection on NEAR",
   "license": "MIT",
   "scripts": {
     "setup": "tsx src/setup.ts",

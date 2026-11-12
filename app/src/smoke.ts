@@ -50,28 +50,28 @@ async function main() {
   check("invalid claim is rejected with reasons", inv.status === 400 && Array.isArray(inv.json.details));
   check("unknown lease is a 404", (await req("GET", "/v1/leases/999999")).status === 404);
 
-  const created = await act({ as: "kamau", action: "create_lease", terms: { tenant: "otieno", deposit_usd: 500, label: "Ngong Rd bedsitter", window_secs: 30 } });
+  const created = await act({ as: "sofia", action: "create_lease", terms: { tenant: "lucas", deposit_usd: 500, label: "Room 5, Hill View", window_secs: 30 } });
   check("create lease", created.status === 200, JSON.stringify(created.json));
   const id: number = created.json.lease_id;
 
-  const wrongParty = await act({ as: "wanjiru", action: "fund", lease_id: id });
+  const wrongParty = await act({ as: "priya", action: "fund", lease_id: id });
   check("wrong tenant cannot fund (refunded by token)", wrongParty.status === 409, wrongParty.json?.message);
 
   for (const [as, action] of [
-    ["otieno", "fund"],
-    ["kamau", "sign_checkin"],
-    ["otieno", "sign_checkin"],
-    ["otieno", "submit_checkout"],
-    ["kamau", "file_claim"],
+    ["lucas", "fund"],
+    ["sofia", "sign_checkin"],
+    ["lucas", "sign_checkin"],
+    ["lucas", "submit_checkout"],
+    ["sofia", "file_claim"],
   ] as const) {
     const r = await act({ as, action, lease_id: id });
     check(`${as} ${action}`, r.status === 200, r.status === 200 ? "" : JSON.stringify(r.json));
   }
 
-  const early = await act({ as: "kamau", action: "finalize", lease_id: id });
+  const early = await act({ as: "sofia", action: "finalize", lease_id: id });
   check("finalize before the deadline is refused by the contract", early.status === 409, early.json?.message);
 
-  const d = await act({ as: "otieno", action: "dispute", lease_id: id, text: "Normal wear only, except the window." });
+  const d = await act({ as: "lucas", action: "dispute", lease_id: id, text: "Normal wear only, except the window." });
   check("tenant disputes", d.status === 200);
 
   const assessed = await waitFor(id, ["Assessed", "Settled"], 45_000);

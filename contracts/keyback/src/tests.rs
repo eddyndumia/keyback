@@ -22,7 +22,7 @@ const STRANGER: &str = "stranger.testnet";
 
 fn ctx(caller: &str, near_yocto: u128, ts: u64) {
     let mut b = VMContextBuilder::new();
-    b.current_account_id(id("rudisha.testnet"))
+    b.current_account_id(id("keyback.testnet"))
         .predecessor_account_id(id(caller))
         .signer_account_id(id(caller))
         .attached_deposit(NearToken::from_yoctonear(near_yocto))
@@ -488,8 +488,8 @@ fn empty_withdraw_rejected() {
 fn failed_withdrawal_restores_balance() {
     let mut c = new_contract();
     let mut b = VMContextBuilder::new();
-    b.current_account_id(id("rudisha.testnet"))
-        .predecessor_account_id(id("rudisha.testnet"))
+    b.current_account_id(id("keyback.testnet"))
+        .predecessor_account_id(id("keyback.testnet"))
         .block_timestamp(START * NS);
     testing_env!(
         b.build(),

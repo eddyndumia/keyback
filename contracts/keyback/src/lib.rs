@@ -1,4 +1,4 @@
-//! Rudisha: rent deposit protection on NEAR.
+//! Keyback: rent deposit protection on NEAR.
 //!
 //! The tenant's deposit is held by this contract, never by the landlord.
 //! Both sides sign the move-in report; at move-out the landlord has a fixed
@@ -214,7 +214,7 @@ fn check_window(secs: u64, what: &str) {
 
 fn event(name: &str, lease_id: u64, extra: &str) {
     log!(
-        "EVENT_JSON:{{\"standard\":\"rudisha\",\"version\":\"1.0.0\",\"event\":\"{}\",\"data\":[{{\"lease_id\":{}{}}}]}}",
+        "EVENT_JSON:{{\"standard\":\"keyback\",\"version\":\"1.0.0\",\"event\":\"{}\",\"data\":[{{\"lease_id\":{}{}}}]}}",
         name,
         lease_id,
         extra
@@ -368,7 +368,7 @@ impl Contract {
     // ------------------------------------------------------------ tenant
 
     /// NEP-141 receiver: the tenant funds a lease with
-    /// `ft_transfer_call(rudisha, deposit, msg = {"lease_id": N})`.
+    /// `ft_transfer_call(keyback, deposit, msg = {"lease_id": N})`.
     /// Any mismatch panics, which makes the token refund the tenant in full.
     pub fn ft_on_transfer(&mut self, sender_id: AccountId, amount: U128, msg: String) -> PromiseOrValue<U128> {
         require!(env::predecessor_account_id() == self.token, "only the configured token");
@@ -613,7 +613,7 @@ impl Contract {
         ext_ft::ext(self.token.clone())
             .with_attached_deposit(NearToken::from_yoctonear(1))
             .with_static_gas(GAS_FT_TRANSFER)
-            .ft_transfer(who.clone(), U128(amount), Some("rudisha withdrawal".into()))
+            .ft_transfer(who.clone(), U128(amount), Some("keyback withdrawal".into()))
             .then(
                 ext_self::ext(env::current_account_id())
                     .with_static_gas(GAS_ON_WITHDRAW)

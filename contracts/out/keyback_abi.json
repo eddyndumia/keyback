@@ -1,13 +1,13 @@
 {
   "schema_version": "0.4.0",
   "metadata": {
-    "name": "rudisha",
+    "name": "keyback",
     "version": "0.1.0",
     "build": {
       "compiler": "rustc 1.99.1",
       "builder": "cargo-near cargo-near-build 0.11.5"
     },
-    "wasm_hash": "DbWbDf6Y4hD11X4tzokbCms3rWAaemmm9325Rtza7vPs"
+    "wasm_hash": "3GEbtV9GaTCqDPEghqzQqmKaTFjbvM9xye5oqpvrwo6k"
   },
   "body": {
     "functions": [
@@ -243,7 +243,7 @@
       },
       {
         "name": "ft_on_transfer",
-        "doc": " NEP-141 receiver: the tenant funds a lease with\n `ft_transfer_call(rudisha, deposit, msg = {\"lease_id\": N})`.\n Any mismatch panics, which makes the token refund the tenant in full.",
+        "doc": " NEP-141 receiver: the tenant funds a lease with\n `ft_transfer_call(keyback, deposit, msg = {\"lease_id\": N})`.\n Any mismatch panics, which makes the token refund the tenant in full.",
         "kind": "call",
         "params": {
           "serialization_type": "json",

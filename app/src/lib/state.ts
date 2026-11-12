@@ -34,7 +34,7 @@ export function saveState(s: DeployState): void {
   writeFileSync(statePath(), JSON.stringify(s, null, 2), { mode: 0o600 });
 }
 
-/** Resolves a character name ("achieng") or full account id to its key. */
+/** Resolves a character name ("amara") or full account id to its key. */
 export function keyFor(s: DeployState, who: string): Key {
   if (s.people[who]) return s.people[who];
   const p = Object.values(s.people).find((k) => k.id === who);

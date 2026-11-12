@@ -22,7 +22,7 @@ function oneOf<T extends string>(name: string, allowed: readonly T[], dflt: T): 
 export const config = {
   rpcUrl: process.env.NEAR_RPC ?? "https://test.rpc.fastnear.com",
   explorer: process.env.NEAR_EXPLORER ?? "https://testnet.nearblocks.io",
-  dataDir: process.env.RUDISHA_DATA ?? join(APP_ROOT, ".rudisha"),
+  dataDir: process.env.KEYBACK_DATA ?? join(APP_ROOT, ".keyback"),
   port: int("PORT", 8787),
   host: process.env.HOST ?? "127.0.0.1",
   /** auto = NEAR AI if NEARAI_API_KEY is set, otherwise the rule engine. */

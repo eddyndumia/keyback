@@ -1,8 +1,8 @@
 // One-time testnet setup. Needs no keys from us: accounts come from the public faucet.
 //
-//   rudisha-<tag>.testnet            one faucet account that pays for the rest
-//   deposits.rudisha-<tag>.testnet   the Rudisha contract
-//   tusd.rudisha-<tag>.testnet       the test stablecoin (open faucet, testnet only)
+//   keyback-<tag>.testnet            one faucet account that pays for the rest
+//   deposits.keyback-<tag>.testnet   the Keyback contract
+//   tusd.keyback-<tag>.testnet       the test stablecoin (open faucet, testnet only)
 //   assessor., arbiter., and fictional landlords/tenants as sub-accounts
 //
 // Usage: npm run setup                (skips if already set up)
@@ -19,11 +19,11 @@ const FAUCET = process.env.NEAR_FAUCET ?? "https://helper.nearprotocol.com/accou
 const WASM = (n: string) => readFileSync(join(REPO_ROOT, "contracts", "out", `${n}.wasm`));
 
 const PEOPLE: [string, "landlord" | "tenant"][] = [
-  ["mwangi", "landlord"],
-  ["kamau", "landlord"],
-  ["achieng", "tenant"],
-  ["otieno", "tenant"],
-  ["wanjiru", "tenant"],
+  ["daniel", "landlord"],
+  ["sofia", "landlord"],
+  ["amara", "tenant"],
+  ["lucas", "tenant"],
+  ["priya", "tenant"],
 ];
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -52,7 +52,7 @@ async function faucet(id: string): Promise<Key> {
   return { id, key: kp.toString() };
 }
 
-async function deployRudisha(ops: Key, name: string, token: string, assessor: string, arbiter: string): Promise<Key> {
+async function deployKeyback(ops: Key, name: string, token: string, assessor: string, arbiter: string): Promise<Key> {
   const kp = KeyPair.fromRandom("ed25519");
   const id = `${name}.${ops.id}`;
   await account(ops).signAndSendTransaction({
@@ -61,7 +61,7 @@ async function deployRudisha(ops: Key, name: string, token: string, assessor: st
       actions.createAccount(),
       actions.transfer(nearToYocto("2.6")),
       actions.addFullAccessKey(kp.getPublicKey()),
-      actions.deployContract(WASM("rudisha")),
+      actions.deployContract(WASM("keyback")),
       actions.functionCall("new", { admin: id, token, assessor, arbiter }, teraToGas("50"), 0n),
     ],
   });
@@ -73,8 +73,8 @@ async function main() {
   if (process.argv.includes("--redeploy")) {
     const old = loadState();
     const name = `v${Date.now().toString(36)}`;
-    console.log(`Redeploying Rudisha to ${name}.${old.ops.id} (no faucet needed)`);
-    const admin = await deployRudisha(old.ops, name, old.tokenId, old.assessor.id, old.arbiter.id);
+    console.log(`Redeploying Keyback to ${name}.${old.ops.id} (no faucet needed)`);
+    const admin = await deployKeyback(old.ops, name, old.tokenId, old.assessor.id, old.arbiter.id);
     saveState({ ...old, contractId: admin.id, admin, createdAt: new Date().toISOString() });
     console.log(`Done. Contract: ${config.explorer}/address/${admin.id}`);
     return;
@@ -88,8 +88,8 @@ Run "npm run setup -- --fresh" for new accounts.`);
   const step = (n: number, s: string) => console.log(`[${n}/6] ${s}`);
 
   // One faucet account; everything else is a sub-account it pays for (faucets rate-limit).
-  step(1, `Creating one faucet account: rudisha-${tag}.testnet`);
-  const ops = await faucet(`rudisha-${tag}.testnet`);
+  step(1, `Creating one faucet account: keyback-${tag}.testnet`);
+  const ops = await faucet(`keyback-${tag}.testnet`);
 
   step(2, "Creating assessor, arbiter and demo characters");
   const opsAcc = account(ops);
@@ -114,8 +114,8 @@ Run "npm run setup -- --fresh" for new accounts.`);
     actions: [actions.deployContract(WASM("tusd")), actions.functionCall("new", {}, teraToGas("30"), 0n)],
   });
 
-  step(4, "Deploying Rudisha");
-  const admin = await deployRudisha(ops, "deposits", token.id, assessor.id, arbiter.id);
+  step(4, "Deploying Keyback");
+  const admin = await deployKeyback(ops, "deposits", token.id, assessor.id, arbiter.id);
 
   step(5, "Tenants take tUSD from the test faucet");
   for (const [name, k] of Object.entries(people)) {
