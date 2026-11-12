@@ -25,6 +25,10 @@ export function hasState(): boolean {
 }
 
 export function loadState(): DeployState {
+  // Hosted deploys have no setup step: the state comes in as base64 JSON in KEYBACK_STATE_B64.
+  if (!hasState() && process.env.KEYBACK_STATE_B64) {
+    saveState(JSON.parse(Buffer.from(process.env.KEYBACK_STATE_B64, "base64").toString("utf8")));
+  }
   if (!hasState()) throw new Error(`No deployment found at ${statePath()}. Run "npm run setup" first.`);
   return JSON.parse(readFileSync(statePath(), "utf8"));
 }

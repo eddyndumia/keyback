@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { config } from "./config.js";
+import { mirrorBlob } from "./mirror.js";
 
 /** JSON with sorted keys and no undefined values: the same object always hashes the same. */
 export function canonical(v: unknown): string {
@@ -26,7 +27,8 @@ export const sha256 = (s: string | Uint8Array): string => createHash("sha256").u
 export const hashOf = (doc: unknown): string => sha256(canonical(doc));
 
 const HEX64 = /^[0-9a-f]{64}$/;
-const dir = () => join(config.dataDir, "blobs");
+export const blobDir = () => join(config.dataDir, "blobs");
+const dir = blobDir;
 
 export function put(doc: unknown): string {
   const body = canonical(doc);
@@ -39,6 +41,7 @@ export function put(doc: unknown): string {
     writeFileSync(tmp, body);
     renameSync(tmp, f);
   }
+  mirrorBlob(h, body);
   return h;
 }
 

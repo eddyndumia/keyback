@@ -22,7 +22,11 @@ import {
 import { usd } from "../lib/near.js";
 import { Conflict, NotFound, Keyback } from "../lib/keyback.js";
 import { DeployState, keyFor, loadState, publicState } from "../lib/state.js";
-import { TamperedError, get, hashOf, put } from "../lib/store.js";
+import { TamperedError, blobDir, get, hashOf, put } from "../lib/store.js";
+import { flushMirror, restoreBlobs } from "../lib/mirror.js";
+import fastifyStatic from "@fastify/static";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import { checkin, checkoutClean, checkoutDamaged, checkoutDoctored, fairClaim, inflatedClaim } from "../samples.js";
 import { iso, present, presentDetail } from "./present.js";
 import { startWorker } from "./worker.js";
@@ -188,7 +192,9 @@ export async function buildServer(state: DeployState) {
     const { type, doc } = req.body ?? ({} as any);
     const errs = validateDoc(type, doc);
     if (errs.length) throw new BadRequest(errs);
-    return { hash: put(doc) };
+    const hash = put(doc);
+    await flushMirror();
+    return { hash };
   });
 
   app.post<{ Body: { type: string; doc: any } }>("/v1/documents/hash", async (req) => {
@@ -369,7 +375,12 @@ async function runDemoAction(r: Keyback, s: DeployState, a: DemoAction) {
 
 if (process.argv[1] && /server\.(ts|js)$/.test(process.argv[1])) {
   const state = loadState();
+  const restored = await restoreBlobs(blobDir());
   const app = await buildServer(state);
+  if (restored) app.log.info({ restored }, "restored evidence blobs from the database");
+  // When WEB_DIST points at a built web/ folder, serve the site from the same origin.
+  const web = process.env.WEB_DIST ? resolve(process.env.WEB_DIST) : "";
+  if (web && existsSync(web)) await app.register(fastifyStatic, { root: web });
   const stopWorker = process.env.RUN_WORKER === "0" ? () => {} : startWorker(state, app.log);
   const shutdown = async (sig: string) => {
     app.log.info({ sig }, "shutting down");

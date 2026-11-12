@@ -3,6 +3,7 @@
 import { teraToGas } from "near-api-js";
 import { assessWithNearAi } from "../assessor/nearai.js";
 import { assessWithRules } from "../assessor/rules.js";
+import { flushMirror } from "./mirror.js";
 import { assessorUsesNearAi } from "./config.js";
 import {
   AssessmentDoc,
@@ -84,12 +85,14 @@ export class Keyback {
 
   async signCheckin(who: Key, leaseId: number, report: Report): Promise<string> {
     const h = put(report);
+    await flushMirror();
     await call(account(who), this.c, "sign_checkin", { lease_id: leaseId, checkin_hash: h });
     return h;
   }
 
   async submitCheckout(who: Key, leaseId: number, report: Report): Promise<string> {
     const h = put(report);
+    await flushMirror();
     await call(account(who), this.c, "submit_checkout", { lease_id: leaseId, checkout_hash: h });
     return h;
   }
@@ -97,6 +100,7 @@ export class Keyback {
   /** The other party adds their own move-out report (once, before assessment). */
   async counterCheckout(who: Key, leaseId: number, report: Report): Promise<string> {
     const h = put(report);
+    await flushMirror();
     await call(account(who), this.c, "counter_checkout", { lease_id: leaseId, checkout_hash: h });
     return h;
   }
@@ -105,6 +109,7 @@ export class Keyback {
 
   async fileClaim(landlord: Key, leaseId: number, claim: ClaimDoc): Promise<string> {
     const h = put(claim);
+    await flushMirror();
     await call(account(landlord), this.c, "file_claim", {
       lease_id: leaseId,
       amount: claimTotal(claim).toString(),
@@ -117,18 +122,21 @@ export class Keyback {
 
   async dispute(tenant: Key, leaseId: number, doc: DisputeDoc): Promise<string> {
     const h = put(doc);
+    await flushMirror();
     await call(account(tenant), this.c, "dispute", { lease_id: leaseId, reason_hash: h });
     return h;
   }
 
   async appeal(who: Key, leaseId: number, doc: DisputeDoc): Promise<string> {
     const h = put(doc);
+    await flushMirror();
     await call(account(who), this.c, "appeal", { lease_id: leaseId, reason_hash: h });
     return h;
   }
 
   async rule(arbiter: Key, leaseId: number, doc: RulingDoc): Promise<string> {
     const h = put(doc);
+    await flushMirror();
     await call(account(arbiter), this.c, "rule", { lease_id: leaseId, to_landlord: doc.to_landlord, reason_hash: h });
     return h;
   }
@@ -158,12 +166,15 @@ export class Keyback {
       doc = r.doc;
       checks = r.checks;
       attestationHash = put({ kind: "nearai-proof", proof: r.proof, checks: r.checks });
+      await flushMirror();
     } else {
       doc = assessWithRules(checkin, checkout, claim, counter);
       // No TEE: the "attestation" is an honest marker that the open rule engine ran.
       attestationHash = put({ kind: "rules-engine", engine: "rules-v1", note: "No TEE. Deterministic rules in src/assessor/rules.ts." });
+      await flushMirror();
     }
     const reasonHash = put(doc);
+    await flushMirror();
     if (l.assessor !== this.s.assessor.id) throw new Conflict(`lease ${leaseId} is assigned to assessor ${l.assessor}`);
     await call(account(this.s.assessor), this.c, "submit_assessment", {
       lease_id: leaseId,

@@ -19,6 +19,8 @@
   },
   "dependencies": {
     "@fastify/cors": "^11.4.1",
+    "@fastify/static": "^10.1.10",
+    "@neondatabase/serverless": "^1.2.0",
     "ethers": "^6.17.0",
     "fastify": "^5.12.8",
     "near-api-js": "^7.5.3"
