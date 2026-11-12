@@ -1,0 +1,1052 @@
+{
+  "schema_version": "0.4.0",
+  "metadata": {
+    "name": "rudisha",
+    "version": "0.1.0",
+    "build": {
+      "compiler": "rustc 1.99.1",
+      "builder": "cargo-near cargo-near-build 0.11.5"
+    },
+    "wasm_hash": "DZjZgArGEyAH55TxYoRpPMaueL9Q6JBP7yCXb4isC1LV"
+  },
+  "body": {
+    "functions": [
+      {
+        "name": "accept_claim",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "lease_id",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "appeal",
+        "doc": " Ask a human arbiter: after an assessment, or if the assessor missed its deadline.",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "lease_id",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            {
+              "name": "reason_hash",
+              "type_schema": {
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "cancel",
+        "doc": " Before move-in only. A funded deposit goes straight back to the tenant.",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "lease_id",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "contract_source_metadata",
+        "kind": "view"
+      },
+      {
+        "name": "create_lease",
+        "doc": " The landlord opens a lease. Attach NEAR for storage; the excess is refunded.",
+        "kind": "call",
+        "modifiers": [
+          "payable"
+        ],
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "tenant",
+              "type_schema": {
+                "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+                "type": "string"
+              }
+            },
+            {
+              "name": "deposit",
+              "type_schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "label",
+              "type_schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "lease_ends_in_secs",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            {
+              "name": "claim_window_secs",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            {
+              "name": "response_window_secs",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            {
+              "name": "appeal_window_secs",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            }
+          ]
+        },
+        "result": {
+          "serialization_type": "json",
+          "type_schema": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          }
+        }
+      },
+      {
+        "name": "dispute",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "lease_id",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            {
+              "name": "reason_hash",
+              "type_schema": {
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "file_claim",
+        "doc": " Landlord claims deductions within the claim window. The undisputed part\n of the deposit is credited to the tenant immediately.",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "lease_id",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            {
+              "name": "amount",
+              "type_schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "items_hash",
+              "type_schema": {
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "finalize",
+        "doc": " Applies the default outcome once a deadline has passed:\n no claim -> tenant gets everything; no response -> claim stands;\n no appeal -> assessment stands.",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "lease_id",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "ft_on_transfer",
+        "doc": " NEP-141 receiver: the tenant funds a lease with\n `ft_transfer_call(rudisha, deposit, msg = {\"lease_id\": N})`.\n Any mismatch panics, which makes the token refund the tenant in full.",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "sender_id",
+              "type_schema": {
+                "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+                "type": "string"
+              }
+            },
+            {
+              "name": "amount",
+              "type_schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "msg",
+              "type_schema": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "result": {
+          "serialization_type": "json",
+          "type_schema": {
+            "$ref": "#/definitions/PromiseOrValueString"
+          }
+        }
+      },
+      {
+        "name": "get_claimable",
+        "kind": "view",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "account_id",
+              "type_schema": {
+                "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "result": {
+          "serialization_type": "json",
+          "type_schema": {
+            "type": "string"
+          }
+        }
+      },
+      {
+        "name": "get_config",
+        "kind": "view",
+        "result": {
+          "serialization_type": "json",
+          "type_schema": {
+            "$ref": "#/definitions/Config"
+          }
+        }
+      },
+      {
+        "name": "get_lease",
+        "kind": "view",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "lease_id",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            }
+          ]
+        },
+        "result": {
+          "serialization_type": "json",
+          "type_schema": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Lease"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "get_record",
+        "kind": "view",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "account_id",
+              "type_schema": {
+                "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "result": {
+          "serialization_type": "json",
+          "type_schema": {
+            "$ref": "#/definitions/Record"
+          }
+        }
+      },
+      {
+        "name": "leases_of",
+        "kind": "view",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "account_id",
+              "type_schema": {
+                "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "result": {
+          "serialization_type": "json",
+          "type_schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Lease"
+            }
+          }
+        }
+      },
+      {
+        "name": "list_leases",
+        "kind": "view",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "from_id",
+              "type_schema": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            {
+              "name": "limit",
+              "type_schema": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            }
+          ]
+        },
+        "result": {
+          "serialization_type": "json",
+          "type_schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Lease"
+            }
+          }
+        }
+      },
+      {
+        "name": "new",
+        "kind": "call",
+        "modifiers": [
+          "init"
+        ],
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "admin",
+              "type_schema": {
+                "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+                "type": "string"
+              }
+            },
+            {
+              "name": "token",
+              "type_schema": {
+                "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+                "type": "string"
+              }
+            },
+            {
+              "name": "assessor",
+              "type_schema": {
+                "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+                "type": "string"
+              }
+            },
+            {
+              "name": "arbiter",
+              "type_schema": {
+                "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "on_withdraw",
+        "kind": "call",
+        "modifiers": [
+          "private"
+        ],
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "account_id",
+              "type_schema": {
+                "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+                "type": "string"
+              }
+            },
+            {
+              "name": "amount",
+              "type_schema": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "result": {
+          "serialization_type": "json",
+          "type_schema": {
+            "type": "boolean"
+          }
+        }
+      },
+      {
+        "name": "return_in_full",
+        "doc": " Landlord returns the whole deposit at move-out (the fast, good-record path).",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "lease_id",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "rule",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "lease_id",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            {
+              "name": "to_landlord",
+              "type_schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "reason_hash",
+              "type_schema": {
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "set_roles",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "assessor",
+              "type_schema": {
+                "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+                "type": "string"
+              }
+            },
+            {
+              "name": "arbiter",
+              "type_schema": {
+                "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "sign_checkin",
+        "doc": " Both parties sign the same move-in report hash. Signing a different\n hash replaces the report and resets the other party's signature.",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "lease_id",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            {
+              "name": "checkin_hash",
+              "type_schema": {
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "submit_assessment",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "lease_id",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            {
+              "name": "to_landlord",
+              "type_schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "reason_hash",
+              "type_schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "attestation_hash",
+              "type_schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "confidence_bps",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint16",
+                "minimum": 0.0
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "submit_checkout",
+        "doc": " Either party records the move-out report once the lease has ended.\n This opens the landlord's claim window.",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "lease_id",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            {
+              "name": "checkout_hash",
+              "type_schema": {
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "withdraw",
+        "doc": " Pull your credited balance. On a failed transfer the balance is restored.",
+        "kind": "call",
+        "result": {
+          "serialization_type": "json",
+          "type_schema": {
+            "$ref": "#/definitions/Promise"
+          }
+        }
+      }
+    ],
+    "root_schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "String",
+      "type": "string",
+      "definitions": {
+        "Appeal": {
+          "type": "object",
+          "required": [
+            "at",
+            "by",
+            "reason_hash"
+          ],
+          "properties": {
+            "at": {
+              "type": "string"
+            },
+            "by": {
+              "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+              "type": "string"
+            },
+            "reason_hash": {
+              "type": "string"
+            }
+          }
+        },
+        "Assessment": {
+          "type": "object",
+          "required": [
+            "at",
+            "attestation_hash",
+            "confidence_bps",
+            "reason_hash",
+            "to_landlord"
+          ],
+          "properties": {
+            "at": {
+              "type": "string"
+            },
+            "attestation_hash": {
+              "description": "sha256 of the TEE proof bundle (attestation report + signed chat).",
+              "type": "string"
+            },
+            "confidence_bps": {
+              "type": "integer",
+              "format": "uint16",
+              "minimum": 0.0
+            },
+            "reason_hash": {
+              "type": "string"
+            },
+            "to_landlord": {
+              "type": "string"
+            }
+          }
+        },
+        "Claim": {
+          "type": "object",
+          "required": [
+            "amount",
+            "filed_at",
+            "items_hash"
+          ],
+          "properties": {
+            "amount": {
+              "type": "string"
+            },
+            "filed_at": {
+              "type": "string"
+            },
+            "items_hash": {
+              "description": "sha256 of the itemised deductions (stored off-chain).",
+              "type": "string"
+            }
+          }
+        },
+        "Config": {
+          "type": "object",
+          "required": [
+            "admin",
+            "arbiter",
+            "assessor",
+            "lease_count",
+            "token"
+          ],
+          "properties": {
+            "admin": {
+              "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+              "type": "string"
+            },
+            "arbiter": {
+              "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+              "type": "string"
+            },
+            "assessor": {
+              "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+              "type": "string"
+            },
+            "lease_count": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "token": {
+              "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+              "type": "string"
+            }
+          }
+        },
+        "Lease": {
+          "type": "object",
+          "required": [
+            "active_at",
+            "appeal_window_secs",
+            "checkin_by_landlord",
+            "checkin_by_tenant",
+            "claim_window_secs",
+            "created_at",
+            "deadline",
+            "deposit",
+            "funded_at",
+            "id",
+            "label",
+            "landlord",
+            "lease_end",
+            "moveout_at",
+            "paid_to_landlord",
+            "paid_to_tenant",
+            "response_window_secs",
+            "settled_at",
+            "state",
+            "tenant"
+          ],
+          "properties": {
+            "active_at": {
+              "type": "string"
+            },
+            "appeal": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Appeal"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "appeal_window_secs": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "assessment": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Assessment"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "checkin_by_landlord": {
+              "type": "boolean"
+            },
+            "checkin_by_tenant": {
+              "type": "boolean"
+            },
+            "checkin_hash": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "checkout_hash": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "claim": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Claim"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "claim_window_secs": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "created_at": {
+              "type": "string"
+            },
+            "deadline": {
+              "description": "When `finalize` may act on the current state (0 = no deadline).",
+              "type": "string"
+            },
+            "deposit": {
+              "type": "string"
+            },
+            "dispute_reason_hash": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "funded_at": {
+              "type": "string"
+            },
+            "id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "label": {
+              "description": "Short public label, e.g. \"Kilimani 2BR\". No addresses or names.",
+              "type": "string"
+            },
+            "landlord": {
+              "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+              "type": "string"
+            },
+            "lease_end": {
+              "type": "string"
+            },
+            "moveout_at": {
+              "type": "string"
+            },
+            "paid_to_landlord": {
+              "type": "string"
+            },
+            "paid_to_tenant": {
+              "type": "string"
+            },
+            "response_window_secs": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "ruling": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Ruling"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "settled_at": {
+              "type": "string"
+            },
+            "state": {
+              "$ref": "#/definitions/State"
+            },
+            "tenant": {
+              "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+              "type": "string"
+            }
+          }
+        },
+        "Promise": true,
+        "PromiseOrValueString": {
+          "type": "string"
+        },
+        "Record": {
+          "description": "Public track record. Landlord and tenant sides are kept separately.",
+          "type": "object",
+          "required": [
+            "claims_accepted",
+            "claims_filed",
+            "deducted_from_me",
+            "deposits_held",
+            "disputes_faced",
+            "disputes_lost",
+            "disputes_raised",
+            "disputes_won",
+            "full_returns",
+            "landlord_leases",
+            "landlord_settled",
+            "return_secs_total",
+            "returned_to_tenants",
+            "tenant_leases",
+            "tenant_settled"
+          ],
+          "properties": {
+            "claims_accepted": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "claims_filed": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "deducted_from_me": {
+              "type": "string"
+            },
+            "deposits_held": {
+              "type": "string"
+            },
+            "disputes_faced": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "disputes_lost": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "disputes_raised": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "disputes_won": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "full_returns": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "landlord_leases": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "landlord_settled": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "return_secs_total": {
+              "description": "Sum over settled leases of (settled_at - moveout_at), in seconds.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "returned_to_tenants": {
+              "type": "string"
+            },
+            "tenant_leases": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "tenant_settled": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          }
+        },
+        "Ruling": {
+          "type": "object",
+          "required": [
+            "at",
+            "by",
+            "reason_hash",
+            "to_landlord"
+          ],
+          "properties": {
+            "at": {
+              "type": "string"
+            },
+            "by": {
+              "description": "NEAR Account Identifier.\n\nThis is a unique, syntactically valid, human-readable account identifier on the NEAR network.\n\n[See the crate-level docs for information about validation.](index.html#account-id-rules)\n\nAlso see [Error kind precedence](AccountId#error-kind-precedence).\n\n## Examples\n\n``` use near_account_id::AccountId;\n\nlet alice: AccountId = \"alice.near\".parse().unwrap();\n\nassert!(\"ƒelicia.near\".parse::<AccountId>().is_err()); // (ƒ is not f) ```",
+              "type": "string"
+            },
+            "reason_hash": {
+              "type": "string"
+            },
+            "to_landlord": {
+              "type": "string"
+            }
+          }
+        },
+        "State": {
+          "type": "string",
+          "enum": [
+            "Created",
+            "Funded",
+            "Active",
+            "MoveOut",
+            "Claimed",
+            "Disputed",
+            "Assessed",
+            "Appealed",
+            "Settled",
+            "Cancelled"
+          ]
+        }
+      }
+    }
+  }
+}

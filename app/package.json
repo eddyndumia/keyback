@@ -1,0 +1,31 @@
+{
+  "name": "rudisha",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Rudisha: rent deposit protection on NEAR",
+  "license": "MIT",
+  "scripts": {
+    "setup": "tsx src/setup.ts",
+    "demo": "tsx src/demo.ts",
+    "api": "tsx src/api/server.ts",
+    "assessor": "tsx src/assessor/worker.ts",
+    "verify": "tsx src/verify.ts",
+    "test": "node --import tsx --test src/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.4.1",
+    "ethers": "^6.17.0",
+    "fastify": "^5.12.8",
+    "near-api-js": "^7.5.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
